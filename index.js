@@ -3,9 +3,9 @@ var dados = []
 function ApagaRegistro(id) {
     let _confirm = confirm("Deseja realmente excluir esse registro?")
 
-    if(_confirm){//procurar o id dentro do array
-        for(let i = 0; i < dados.length; i++){
-            if(dados[i].ID == id){
+    if (_confirm) { //procurar o id dentro do array
+        for (let i = 0; i < dados.length; i++) {
+            if (dados[i].ID == id) {
                 dados.splice(i, 1)
             }
         }
@@ -15,7 +15,17 @@ function ApagaRegistro(id) {
 }
 
 function EditaRegistro(id) {
+    $("#modalRegistro").modal("show")
 
+    dados.forEach(function (item) {
+        if (item.ID == id) {
+            $("#hdID").val(item.ID)
+            $("#txtNome").val(item.Nome)
+            $("#txtSobrenome").val(item.Sobrenome)
+            $("#txtDtNascimento").val(item.DtNascimento.substr(6, 4) + "-" + item.DtNascimento.substr(3, 2) + "-" + item.DtNascimento.substr(0, 2))
+            $("#txtFormacao").val(item.Formacao)
+        }
+    })
 }
 
 function PopulaTabela() { //busca os dados do cache
@@ -33,7 +43,7 @@ function PopulaTabela() { //busca os dados do cache
                 <td>${item.Sobrenome}</td>
                 <td>${item.DtNascimento}</td>
                 <td>${item.Formacao}</td>
-                <td><button type ="button" class="btn btn-primary"><i class="fa fa-edit" /></button></td>
+                <td><button type ="button" class="btn btn-primary" onclick="javascript: EditaRegistro(${item.ID})"><i class="fa fa-edit" /></button></td>
                 <td><button type ="button" class="btn btn-danger" onclick="javascript: ApagaRegistro(${item.ID})"><i class="fa fa-trash" /></button></td>
             </tr>`)
         })
@@ -49,38 +59,56 @@ $(function () {
         PopulaTabela()
     }
 
-    $("#btnSalvar").click(function(){
+    $("#btnSalvar").click(function () {
         //Evento do botão salvar
 
+        let _id = $("#hdID").val()
         let Nome = $("#txtNome").val()
         let Sobrenome = $("#txtSobrenome").val()
-        let DtNascimento = new Date($("#txtDtNascimento").val()).toLocaleDateString("pt-br", { timeZone: "UTC" })
+        let DtNascimento = new Date($("#txtDtNascimento").val()).toLocaleDateString("pt-br", {
+            timeZone: "UTC"
+        })
         let Formacao = $("#txtFormacao").val()
 
-        let registro = {}
+        if (!_id || _id == "0") { //verifica se _id é vazio, e faz o cadastro
 
-        registro.Nome = Nome
-        registro.Sobrenome = Sobrenome
-        registro.DtNascimento = DtNascimento
-        registro.Formacao = Formacao
+            let registro = {}
 
-        //atribuiremos o tamanho do array + 1 como ID
-        if(dados != null){
-            registro.ID = dados.length + 1
-        }else {
-            registro.ID = 1
+            registro.Nome = Nome
+            registro.Sobrenome = Sobrenome
+            registro.DtNascimento = DtNascimento
+            registro.Formacao = Formacao
+
+            //atribuiremos o tamanho do array + 1 como ID
+            if (dados != null) {
+                registro.ID = dados.length + 1
+            } else {
+                registro.ID = 1
+            }
+
+            if (dados) { //verifica se é nulo
+                dados.push(registro)
+            } else {
+                dados = [registro]
+            }
+
+            alert("Registro salvo com sucesso")
+        } else {
+            dados.forEach(function (item) {
+                if (item.ID == _id) {
+                    item.Nome = Nome
+                    item.Sobrenome = Sobrenome
+                    item.DtNascimento = DtNascimento
+                    item.Formacao = Formacao
+                }
+            })
+            alert("Registro alterado com sucesso")
         }
 
-        if(dados){
-            dados.push(registro)
-        }else {
-            dados = [registro]
-        }
-        
-        alert("Registro salvo com sucesso")
         $("#modalRegistro").modal("hide") //fecha a modal após clicar em salvar
 
         //limpar campos do modal
+        $("#hdID").val("0") //importante zerar o hidden field para evitar ações indeejadas por sujeira
         $("#txtNome").val("")
         $("#txtSobrenome").val("")
         $("#txtDtNascimento").val("")
